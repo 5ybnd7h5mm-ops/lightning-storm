@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>⚡ 閃電風暴｜Lightning Storm</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Arial,"Noto Sans TC","Microsoft JhengHei",sans-serif}
+body{background:radial-gradient(circle at 50% 15%,#244a9b 0,#0c1735 34%,#03050b 78%);color:#fff;display:flex;justify-content:center;overflow-x:hidden}
+body:before{content:"";position:fixed;inset:-30%;pointer-events:none;opacity:.16;background:repeating-linear-gradient(118deg,transparent 0 18%,#fff 18.2% 18.35%,transparent 18.5% 36%);transform:rotate(10deg);animation:sky 4s linear infinite}
+@keyframes sky{to{transform:translate(7%,3%) rotate(10deg)}} 
+.app{width:min(1220px,100%);padding:12px;position:relative;z-index:1}.top{display:grid;grid-template-columns:1fr 1.5fr 1fr;gap:9px}
+.jps{display:grid;grid-template-columns:1fr 1fr;gap:6px}.jp,.hero,.bonus,.panel,.pay{background:linear-gradient(#13234a,#070b18);border:2px solid #e4b631;box-shadow:0 0 16px #377cff;border-radius:12px}
+.jp{text-align:center;padding:6px}.jp small{display:block;color:#9dc5ff}.jp b{font-size:18px;color:#ffe45d}
+.hero{text-align:center;padding:5px}.hero .bolt{font-size:40px;line-height:36px}.hero h1{margin:0;color:#ffe55a;font-size:32px;text-shadow:0 3px #704600}.hero small{letter-spacing:4px;color:#a9c9ff}
+.bonus{display:flex;align-items:center;justify-content:center;text-align:center;color:#e8f2ff;font-weight:800}
+.machine{margin-top:10px;border:6px solid #d6a82e;border-radius:24px;background:linear-gradient(#121b32,#050812);padding:10px;box-shadow:inset 0 0 35px #000,0 0 35px #357cff}
+.reels{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;padding:5px;background:#010207;border:3px solid #536b96;border-radius:14px}
+.reel{display:grid;grid-template-rows:repeat(5,1fr);height:470px;overflow:hidden;background:linear-gradient(90deg,#070b16,#172746,#070b16);border-right:1px solid #324565}
+.cell{display:flex;align-items:center;justify-content:center;border-bottom:1px solid #1d2b45;font-size:34px;font-weight:900;text-shadow:0 3px 5px #000;user-select:none}.wild{font-size:38px;color:#ffe15b}.scatter{font-size:38px;color:#65dcff}.red{color:#ff6963}.blue{color:#65cfff}.green{color:#62ee92}.purple{color:#d493ff}.gold{color:#ffe15a}
+.win{animation:win .27s infinite alternate}@keyframes win{to{transform:scale(1.18);filter:drop-shadow(0 0 16px #fff35c)}}
+.status{text-align:center;color:#ffe45d;font-size:18px;font-weight:900;min-height:29px;padding:6px}
+.controls{display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:9px}.panel{padding:9px;text-align:center}.betrow{display:flex;justify-content:center;align-items:center;gap:12px}.btn{background:#111c35;color:#ffe990;border:2px solid #e5b72e;border-radius:9px;padding:6px 14px;font-size:21px;font-weight:900}.btn:disabled{opacity:.5}
+.balance{font-size:15px}.balance b{font-size:27px;color:#ffe45d}.spin{width:100%;min-height:80px;border:5px solid #f0c83c;border-radius:22px;background:radial-gradient(circle,#fff37a,#ffbd20 38%,#a95700);color:#171000;font-weight:1000;font-size:28px;box-shadow:0 0 25px #ffd21d;cursor:pointer}.spin:disabled{opacity:.55;filter:grayscale(.7)}
+.actions{display:flex;justify-content:center;gap:7px;margin-top:8px}.smallbtn{background:#0b1428;color:#c9dcff;border:1px solid #5375a8;border-radius:8px;padding:7px 12px}
+.pay{margin-top:8px;padding:8px;text-align:center;color:#bdd0ed;font-size:12px}
+.balls{min-height:62px;display:flex;justify-content:center;align-items:center;gap:9px;flex-wrap:wrap;margin-top:8px}
+.ball{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 35% 25%,#fff,#ffe66b 22%,#ff9d00 58%,#8a3200 100%);border:3px solid #ffe36a;box-shadow:0 0 16px #ffb000,inset 0 0 8px #fff;color:#541500;font-weight:1000;font-size:15px;animation:ballIn .35s cubic-bezier(.2,1.6,.4,1)}
+@keyframes ballIn{from{transform:scale(0) rotate(-180deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+.ball.big{animation:ballPulse .6s infinite alternate}
+@keyframes ballPulse{to{transform:scale(1.16);box-shadow:0 0 30px #fff000}}
+.freeMode{border-color:#ffcc35!important;box-shadow:0 0 45px #ffb000,inset 0 0 35px #000!important}
+.locked{opacity:.45;filter:grayscale(.7)}
+.overlay{position:fixed;inset:0;background:#02050ce8;z-index:10;display:none;align-items:center;justify-content:center}.overlay.show{display:flex}.modal{width:min(520px,92%);background:linear-gradient(#152b59,#070c18);border:3px solid #e6bd39;border-radius:20px;padding:20px;text-align:center;box-shadow:0 0 40px #347cff}.modal h2{color:#ffe45d}.modal button{margin-top:12px}
+@media(max-width:760px){.top{grid-template-columns:1fr}.hero{order:-1}.jps{grid-template-columns:repeat(4,1fr)}.jp b{font-size:13px}.reel{height:360px}.cell{font-size:25px}.wild,.scatter{font-size:29px}.controls{grid-template-columns:1fr}.spin{border-radius:16px}}
+</style>
+<style>
+.ballStage{position:fixed;inset:0;z-index:30;display:none;overflow:hidden;pointer-events:none;background:radial-gradient(circle at 50% 35%,#5b2600aa,#130600e8 48%,#020106f5)}
+.ballStage.show{display:block;animation:stageIn .28s ease-out}@keyframes stageIn{from{opacity:0}to{opacity:1}}
+.ballTitle{position:absolute;top:12%;width:100%;text-align:center;font-size:clamp(30px,7vw,66px);font-weight:1000;color:#ffe45d;text-shadow:0 5px #6d2200,0 0 30px #ff9d00;animation:titlePulse .65s infinite alternate}
+.ballHint{position:absolute;top:22%;width:100%;text-align:center;color:#fff0bd;font-size:18px;font-weight:900}
+.ballCannon{position:absolute;left:0;right:0;bottom:8%;height:62%}
+.dropBall{position:absolute;width:70px;height:70px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 32% 24%,#fff,#fff19a 18%,#ffc21c 52%,#9b3000 100%);border:4px solid #fff0a0;box-shadow:0 0 12px #ff9d00,0 0 35px #ff6200,inset 0 0 10px #fff;color:#571600;font-size:20px;font-weight:1000;transform:translate(-50%,-50%);animation:ballDrop 1.05s cubic-bezier(.15,.7,.25,1) forwards}
+@keyframes ballDrop{0%{top:-12%;opacity:0;transform:translate(-50%,-50%) scale(.25) rotate(-160deg)}18%{opacity:1}72%{transform:translate(-50%,-50%) scale(1.08) rotate(20deg)}84%{top:78%;transform:translate(-50%,-50%) scale(.88) rotate(-8deg)}100%{top:68%;transform:translate(-50%,-50%) scale(1) rotate(0)}}
+.ballBurst{animation:burst .5s ease-out forwards!important}@keyframes burst{to{transform:translate(-50%,-50%) scale(2.3);opacity:0;filter:brightness(2) drop-shadow(0 0 25px #fff)}}
+@keyframes titlePulse{to{transform:scale(1.04);filter:drop-shadow(0 0 16px #ffb000)}}
+.freeMode{box-shadow:0 0 45px #ffb000,inset 0 0 35px #000!important}
+</style></head>
+<body>
+<div class="flash" id="flash"></div>
+<div class="ballStage" id="ballStage"><div class="ballTitle">⚡ 倍數風暴 ⚡</div><div class="ballHint">倍數球正在降臨…</div><div class="ballCannon" id="ballCannon"></div></div>
+<div class="overlay" id="freeModal"><div class="modal"><h2>⚡ 免費旋轉！⚡</h2><div id="freeText">獲得 10 次免費旋轉</div><button class="btn" onclick="closeFree()">開始</button></div></div>
+
+<div class="app">
+  <div class="top">
+    <div class="jps">
+      <div class="jp"><small>GRAND</small><b>9,999,999</b></div><div class="jp"><small>MAJOR</small><b>999,999</b></div>
+      <div class="jp"><small>MINOR</small><b>99,999</b></div><div class="jp"><small>MINI</small><b>9,999</b></div>
+    </div>
+    <div class="hero"><div class="bolt">⚡</div><h1>閃電風暴</h1><small>LIGHTNING STORM</small></div>
+    <div class="bonus">⚡ 3 個以上 SCATTER<br>觸發免費旋轉</div>
+  </div>
+
+  <div class="machine">
+    <div class="reels" id="reels"></div>
+    <div class="status" id="status">準備好了！點擊開始 ⚡</div>
+    <div class="controls">
+      <div class="panel"><div>每局押注</div><div class="betrow"><button class="btn" id="minus">−</button><b id="bet">50</b><button class="btn" id="plus">＋</button></div></div>
+      <div class="panel balance">虛擬點數：<b id="balance">10000</b><br><small>本遊戲僅供娛樂，無真實金錢交易</small></div>
+      <button class="spin" id="spin">⚡ 開始 ⚡<br><small>長按切換自動遊玩</small></button>
+    </div>
+    <div class="actions"><button class="smallbtn" id="sound">🔊 音效 ON</button><button class="smallbtn" id="buyFree">⚡ 購買免費遊戲</button><button class="smallbtn" id="reset">↺ 重置點數</button></div>
+<div id="balls" class="balls"></div>
+    <div class="pay">⚡ WILD 可替代一般符號｜⚡ SCATTER ×3 = 免費旋轉｜最高 6 軸連線獎勵｜僅使用虛擬點數</div>
+  </div>
+</div>
+
+<script>
+const S=[
+ {v:"⚡",c:"wild",w:7,m:25,wild:true},{v:"💎",c:"blue",w:10,m:12},{v:"👑",c:"gold",w:11,m:9},
+ {v:"🔋",c:"green",w:13,m:7},{v:"A",c:"red",w:14,m:5},{v:"K",c:"blue",w:14,m:4},
+ {v:"Q",c:"purple",w:14,m:3},{v:"J",c:"green",w:14,m:2},{v:"10",c:"gold",w:13,m:1},
+ {v:"🌩️",c:"scatter",w:4,scatter:true}
+];
+let balance=10000,bet=50,spinning=false,auto=false,soundOn=true,freeSpins=0,hold=null,audio=null;
+let inFreeGame=false,freeMultiplier=1,multiplierBalls=[],bonusBallBusy=false;
+
+function pick(){
+ let total=S.reduce((a,x)=>a+x.w,0),r=Math.random()*total;
+ for(const x of S){r-=x.w;if(r<=0)return {...x}}
+ return {...S[0]}
+}
+function makeMatrix(){return Array.from({length:6},()=>Array.from({length:5},pick))}
+function render(m){
+ const box=document.getElementById("reels");box.innerHTML="";
+ for(let c=0;c<6;c++){let col=document.createElement("div");col.className="reel";
+  for(let r=0;r<5;r++){let e=document.createElement("div");e.className="cell "+m[c][r].c;e.textContent=m[c][r].v;e.dataset.c=c;e.dataset.r=r;col.appendChild(e)}
+  box.appendChild(col)
+ }
+}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+function update(){
+ document.getElementById("balance").textContent=balance.toLocaleString();
+ document.getElementById("bet").textContent=bet;
+ document.getElementById("minus").disabled=inFreeGame||spinning;
+ document.getElementById("plus").disabled=inFreeGame||spinning;
+ document.getElementById("buyFree").disabled=inFreeGame||spinning||freeSpins>0;
+ document.querySelector(".machine").classList.toggle("freeMode",inFreeGame);
+}
+function tone(freq=440,dur=.07){
+ if(!soundOn)return;if(!audio)audio=new (window.AudioContext||window.webkitAudioContext)();
+ const o=audio.createOscillator(),g=audio.createGain();o.frequency.value=freq;o.type="square";g.gain.setValueAtTime(.035,audio.currentTime);g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+dur);o.connect(g);g.connect(audio.destination);o.start();o.stop(audio.currentTime+dur)
+}
+function setStatus(t){document.getElementById("status").textContent=t}
+function showBalls(){
+ const box=document.getElementById("balls");if(!box)return;box.innerHTML="";
+ multiplierBalls.forEach(v=>{const b=document.createElement("div");b.className="ball"+(v>=20?" big":"");b.textContent="×"+v;box.appendChild(b);});
+}
+async function addMultiplierBallAnimated(){
+ if(!inFreeGame||bonusBallBusy)return;
+ bonusBallBusy=true;
+ const pool=[2,3,5,8,10,15,25,50];
+ const v=pool[Math.floor(Math.random()*pool.length)];
+ const stage=document.getElementById("ballStage");
+ const cannon=document.getElementById("ballCannon");
+ const hint=document.getElementById("ballHint");
+ stage.classList.add("show");
+ hint.textContent=`倍數球 ×${v} 正在掉落！`;
+ const ball=document.createElement("div");
+ ball.className="dropBall";
+ ball.textContent="×"+v;
+ ball.style.left=(15+Math.random()*70)+"%";
+ cannon.appendChild(ball);
+ tone(420,.12);
+ await sleep(900);
+ ball.classList.add("ballBurst");
+ tone(900,.14); tone(1300,.2);
+ await sleep(420);
+ multiplierBalls.push(v);
+ freeMultiplier=multiplierBalls.reduce((a,x)=>a+x,0);
+ showBalls();
+ hint.textContent=`🔥 累積倍數 ×${freeMultiplier}`;
+ setStatus(`🔥 倍數球 ×${v} 收集成功！目前 ×${freeMultiplier}`);
+ await sleep(700);
+ stage.classList.remove("show");
+ ball.remove();
+ bonusBallBusy=false;
+}
+function evaluate(m){
+ let total=0,lines=[];
+ // 5 條水平線：一般符號可由 WILD 替代
+ for(let r=0;r<5;r++){
+  const first=m[0][r]; let base=first.wild?null:first.v,count=1;
+  for(let c=1;c<6;c++){
+   const x=m[c][r];
+   if(base===null){if(x.wild||!x.scatter){base=x.wild?null:x.v;count++}else break}
+   else if(x.v===base||x.wild)count++;else break;
+  }
+  if(count>=3&&base){
+   const ref=S.find(x=>x.v===base), mult=ref?.m||1;
+   const amount=Math.floor(bet*mult*(count===4?1.5:count>=5?2:1)*(inFreeGame?Math.max(1,freeMultiplier):1));total+=amount;lines.push({r,count,amount,base})
+  }
+ }
+ let scat=0;for(const col of m)for(const x of col)if(x.scatter)scat++;
+ if(scat>=3)total+=bet*10;
+ return {total,lines,scat}
+}
+async function spin(){
+ if(spinning)return;
+ if(freeSpins<=0&&balance<bet){setStatus("⚠️ 虛擬點數不足！");auto=false;return}
+ spinning=true;document.getElementById("spin").disabled=true;
+ if(freeSpins>0){freeSpins--;setStatus(`⚡ 免費旋轉剩餘 ${freeSpins} 次`)}
+ else {balance-=bet;update()}
+ tone(180,.08);
+ const final=makeMatrix();
+ // 每軸獨立停下
+ for(let c=0;c<6;c++){
+  for(let k=0;k<7;k++){
+   const temp=makeMatrix();for(let x=0;x<c;x++)temp[x]=final[x];render(temp);tone(120+c*20,.025);await sleep(55)
+  }
+  const temp=makeMatrix();for(let x=0;x<=c;x++)temp[x]=final[x];render(temp);await sleep(90)
+ }
+ render(final);
+ const out=evaluate(final);
+ await sleep(120);
+ if(out.total>0){
+  balance+=out.total;update();setStatus(`🎉 閃電爆發！贏得 ${out.total.toLocaleString()} 點！`);tone(660,.12);tone(880,.15);
+  for(const line of out.lines)for(let c=0;c<line.count;c++){const e=document.querySelector(`[data-c="${c}"][data-r="${line.r}"]`);if(e)e.classList.add("win")}
+ }else setStatus(freeSpins>0?`⚡ 免費旋轉中……剩餘 ${freeSpins}`:"⚡ 沒有中獎，再來一次！");
+ if(out.scat>=3){
+  const bonus=10;freeSpins+=bonus;
+  document.getElementById("freeText").textContent=`獲得 ${bonus} 次免費旋轉！目前共 ${freeSpins} 次`;
+  document.getElementById("freeModal").classList.add("show");
+  document.getElementById("flash").classList.remove("on");void document.getElementById("flash").offsetWidth;document.getElementById("flash").classList.add("on");tone(1000,.25)
+ }
+ spinning=false;document.getElementById("spin").disabled=false;
+ if(auto&&!document.getElementById("freeModal").classList.contains("show")){await sleep(600);spin()}
+}
+function buyFreeGame(){
+ if(spinning||inFreeGame||freeSpins>0)return;
+ const cost=bet*100;
+ if(balance<cost){setStatus(`⚠️ 購買免費遊戲需要 ${cost.toLocaleString()} 點`);return}
+ balance-=cost;freeSpins=10;inFreeGame=true;freeMultiplier=1;multiplierBalls=[];showBalls();update();
+ document.getElementById("freeText").textContent=`已購買 10 次免費旋轉！押注固定為 ${bet}`;
+ document.getElementById("freeModal").classList.add("show");
+ setStatus("⚡ 免費遊戲已購買！押注已鎖定");tone(700,.2);
+}
+function closeFree(){document.getElementById("freeModal").classList.remove("show");update();if(auto&&!spinning)spin()}
+document.getElementById("minus").onclick=()=>{if(!spinning&&!inFreeGame)bet=Math.max(10,bet-10);update()};
+document.getElementById("plus").onclick=()=>{if(!spinning&&!inFreeGame)bet=Math.min(1000,bet+10);update()};
+document.getElementById("buyFree").onclick=buyFreeGame;
+document.getElementById("spin").onclick=()=>{if(!auto)spin()};
+document.getElementById("sound").onclick=()=>{soundOn=!soundOn;document.getElementById("sound").textContent=soundOn?"🔊 音效 ON":"🔇 音效 OFF"};
+document.getElementById("reset").onclick=()=>{if(spinning)return;balance=10000;bet=50;freeSpins=0;auto=false;inFreeGame=false;freeMultiplier=1;multiplierBalls=[];showBalls();update();setStatus("點數已重置為 10,000")}
+const sb=document.getElementById("spin");
+sb.addEventListener("pointerdown",()=>{hold=setTimeout(()=>{auto=!auto;setStatus(auto?"🔄 自動遊玩 ON":"⏹️ 自動遊玩 OFF");if(auto&&!spinning)spin()},700)});
+["pointerup","pointercancel","pointerleave"].forEach(e=>sb.addEventListener(e,()=>clearTimeout(hold)));
+render(makeMatrix());showBalls();update();
+</script>
+</body>
+</html>
