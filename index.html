@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Fruit Slash｜水果斬 V1</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#07131a;color:#fff;font-family:Arial,"Noto Sans TC",sans-serif}
+body{display:flex;justify-content:center;align-items:center;background:radial-gradient(circle at 50% 25%,#1c5660,#07131a 70%)}
+.app{width:min(520px,100vw);height:100dvh;position:relative;overflow:hidden;background:linear-gradient(#10333a,#07131a)}
+canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+.hud{position:absolute;top:0;left:0;right:0;z-index:5;padding:12px 14px;pointer-events:none}
+.top{display:flex;justify-content:space-between;gap:8px}
+.box{min-width:105px;padding:7px 12px;border:2px solid #f6c85f;border-radius:14px;background:#06151bd9;box-shadow:0 4px 15px #0008}
+.box small{display:block;color:#8fc3c8;font-size:10px}.box b{font-size:22px;color:#ffe28a}
+.center{text-align:center}.combo{font-size:28px;font-weight:1000;color:#fff;opacity:0;transform:scale(.7);text-shadow:0 3px 12px #000}
+.combo.show{opacity:1;transform:scale(1);transition:.12s}
+.progress{height:8px;margin-top:8px;border-radius:8px;background:#ffffff22;overflow:hidden;border:1px solid #ffffff33}
+.progress i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#5df2ff,#ffd34e,#ff6b45);transition:.15s}
+.overlay{position:absolute;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;text-align:center;background:#041015dd;padding:25px}
+.card{width:min(430px,92%);padding:30px 22px;border:2px solid #f4c95d;border-radius:28px;background:radial-gradient(circle at 50% 15%,#24616a,#0b2027 65%);box-shadow:0 20px 70px #000}
+.logo{font-size:46px;font-weight:1000;letter-spacing:2px;color:#ffe06d;text-shadow:0 4px #744c12,0 0 25px #ffbd36}
+.sub{color:#9bd5d8;letter-spacing:3px;margin-bottom:20px}
+button{border:0;border-radius:999px;padding:14px 28px;font-size:19px;font-weight:1000;color:#173039;background:linear-gradient(#fff0a3,#f3b72d);box-shadow:0 5px #a86a12;cursor:pointer}
+button:active{transform:translateY(3px);box-shadow:0 2px #a86a12}
+.hidden{display:none}
+.tip{color:#b9d9dc;font-size:13px;line-height:1.8;margin:18px 0}
+.resultScore{font-size:54px;color:#ffe06d;font-weight:1000}
+.toast{position:absolute;z-index:8;left:50%;top:48%;transform:translate(-50%,-50%) scale(.7);font-size:32px;font-weight:1000;white-space:nowrap;text-shadow:0 4px 15px #000;opacity:0;pointer-events:none}
+.toast.show{animation:toast .75s ease-out}
+@keyframes toast{0%{opacity:0;transform:translate(-50%,-50%) scale(.6)}25%{opacity:1;transform:translate(-50%,-50%) scale(1.15)}100%{opacity:0;transform:translate(-50%,-65%) scale(1)}}
+.bossbar{position:absolute;top:104px;left:12%;right:12%;z-index:6;display:none;text-align:center}
+.bossbar b{font-size:14px;color:#ffcf68}.bossbar .track{height:14px;border:2px solid #ffcf68;border-radius:12px;background:#220d12;overflow:hidden}.bossbar i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#ff3e51,#ff8b35);transition:.12s}
+@media(max-height:650px){.hud{padding-top:7px}.box{padding:5px 9px}.box b{font-size:18px}.bossbar{top:88px}}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+<canvas id="game"></canvas>
+
+<div class="hud" id="hud">
+  <div class="top">
+    <div class="box"><small>分數</small><b id="score">0</b></div>
+    <div class="center"><div class="combo" id="combo">COMBO ×0</div></div>
+    <div class="box" style="text-align:right"><small>最高分</small><b id="best">0</b></div>
+  </div>
+  <div class="progress"><i id="timebar"></i></div>
+</div>
+
+<div class="bossbar" id="bossbar">
+  <b>🍉 西瓜王 BOSS</b>
+  <div class="track"><i id="bossfill"></i></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="overlay" id="start">
+  <div class="card">
+    <div class="logo">FRUIT SLASH</div>
+    <div class="sub">水果斬</div>
+    <div class="tip">滑動手指切水果 🍉<br>切越多，Combo 越高。<br>小心炸彈 💣，切到就會受傷！</div>
+    <button onclick="startGame()">開始遊戲</button>
+  </div>
+</div>
+
+<div class="overlay hidden" id="result">
+  <div class="card">
+    <div class="sub">GAME OVER</div>
+    <div class="resultScore" id="finalScore">0</div>
+    <div class="tip" id="resultText"></div>
+    <button onclick="startGame()">再玩一次</button>
+  </div>
+</div>
+</div>
+
+<script>
+const canvas=document.getElementById("game"),ctx=canvas.getContext("2d");
+const app=document.getElementById("app");
+let W=0,H=0,dpr=1,objects=[],slashes=[],particles=[],score=0,best=+localStorage.getItem("fruitBest")||0;
+let combo=0,lives=3,timeLeft=60,running=false,last=0,spawnTimer=0,shake=0,boss=false,bossHp=0,bossMax=0;
+const fruits=[
+ {e:"🍎",name:"蘋果",pts:10,r:31},{e:"🍊",name:"柳橙",pts:12,r:29},{e:"🍉",name:"西瓜",pts:18,r:42},
+ {e:"🍓",name:"草莓",pts:15,r:25},{e:"🍍",name:"鳳梨",pts:22,r:34},{e:"🥝",name:"奇異果",pts:16,r:29},
+ {e:"🍑",name:"水蜜桃",pts:14,r:29},{e:"🍇",name:"葡萄",pts:20,r:28}
+];
+const specials=[
+ {e:"⚡",type:"light",r:27,pts:35},{e:"❄️",type:"ice",r:27,pts:35},{e:"🔥",type:"fire",r:27,pts:40},{e:"🌈",type:"rain",r:28,pts:60}
+];
+function resize(){dpr=Math.min(devicePixelRatio||1,2);W=app.clientWidth;H=app.clientHeight;canvas.width=W*dpr;canvas.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0)}
+addEventListener("resize",resize);resize();
+document.getElementById("best").textContent=best.toLocaleString();
+
+function startGame(){
+ document.getElementById("start").classList.add("hidden");document.getElementById("result").classList.add("hidden");
+ score=0;combo=0;lives=3;timeLeft=60;objects=[];slashes=[];particles=[];running=true;boss=false;spawnTimer=0;shake=0;
+ document.getElementById("bossbar").style.display="none";updateHud();last=performance.now();requestAnimationFrame(loop);
+}
+function endGame(){
+ running=false;
+ if(score>best){best=score;localStorage.setItem("fruitBest",best)}
+ document.getElementById("finalScore").textContent=score.toLocaleString();
+ document.getElementById("resultText").innerHTML=`最高分：${best.toLocaleString()}<br>${score>=1000?"🔥 水果大師！":"再切一點，你可以的！"}`;
+ document.getElementById("result").classList.remove("hidden");
+}
+function updateHud(){
+ document.getElementById("score").textContent=score.toLocaleString();
+ document.getElementById("best").textContent=best.toLocaleString();
+ document.getElementById("timebar").style.width=Math.max(0,timeLeft/60*100)+"%";
+ const c=document.getElementById("combo");c.textContent=`COMBO ×${combo}`;c.classList.toggle("show",combo>=2);
+}
+function toast(t){const x=document.getElementById("toast");x.textContent=t;x.classList.remove("show");void x.offsetWidth;x.classList.add("show")}
+function spawn(){
+ const isBomb=Math.random()<.13;
+ const special=!isBomb&&Math.random()<.10;
+ let d=isBomb?{e:"💣",type:"bomb",r:27,pts:0}:special?specials[(Math.random()*specials.length)|0]:fruits[(Math.random()*fruits.length)|0];
+ const x=35+Math.random()*(W-70),y=H+45;
+ const power=1+(60-timeLeft)*.012;
+ objects.push({x,y,vx:(Math.random()-.5)*180,vy:-720*power-Math.random()*250,r:d.r,e:d.e,pts:d.pts,type:d.type||"fruit",rot:(Math.random()-.5),a:0,cut:false});
+}
+function bossStart(){
+ boss=true;bossMax=bossHp=1000;document.getElementById("bossbar").style.display="block";toast("🍉 西瓜王來了！");
+ for(let i=0;i<7;i++)setTimeout(()=>spawnBossMinion(),i*120);
+}
+function spawnBossMinion(){if(running)objects.push({x:40+Math.random()*(W-80),y:H+50,vx:(Math.random()-.5)*250,vy:-800,r:35,e:"🍉",pts:30,type:"bossminion",rot:0,a:0,cut:false})}
+function hit(o){
+ if(o.cut)return;o.cut=true;
+ if(o.type==="bomb"){lives--;combo=0;shake=10;toast("💥 BOOM！");burst(o.x,o.y,"#ff5555",22);if(navigator.vibrate)navigator.vibrate(120);if(lives<=0)endGame();return}
+ const gain=Math.round(o.pts*(1+combo*.12));score+=gain;combo++;
+ burst(o.x,o.y,o.type==="light"?"#7df8ff":o.type==="ice"?"#d8ffff":o.type==="fire"?"#ff7b32":"#ffd45c",14);
+ if(o.type==="light"){objects.forEach(q=>{if(q!==o&&q.type==="fruit"&&dist(o,q)<120)hit(q)})}
+ if(o.type==="ice"){timeLeft=Math.min(60,timeLeft+3);toast("❄️ +3 秒")}
+ if(o.type==="fire"){objects.filter(q=>q!==o&&dist(o,q)<150).forEach(q=>{if(q.type!=="bomb")hit(q)})}
+ if(o.type==="rain"){score+=100;toast("🌈 BONUS +100")}
+ if(o.type==="bossminion"&&boss){bossHp=Math.max(0,bossHp-55);document.getElementById("bossfill").style.width=bossHp/bossMax*100+"%";if(bossHp<=0){boss=false;document.getElementById("bossbar").style.display="none";score+=1000;toast("👑 BOSS DESTROYED！");burst(W/2,H/2,"#ffd45c",80)}}
+ if(combo===5)toast("🔥 COMBO ×5");if(combo===10)toast("⚡ COMBO ×10");if(combo===20)toast("🌪️ FRUIT FRENZY！");
+ updateHud();
+}
+function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
+function burst(x,y,col,n){
+ for(let i=0;i<n;i++){let a=Math.random()*Math.PI*2,s=60+Math.random()*260;particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,r:2+Math.random()*5,life:.45+Math.random()*.45,col})}
+}
+function sliceAt(x,y){
+ let found=0;
+ for(const o of objects){if(o.cut)continue;if(Math.hypot(x-o.x,y-o.y)<o.r+18){hit(o);found++}}
+ if(found)slashes.push({x1:x-45,y1:y+25,x2:x+55,y2:y-35,life:.12});
+}
+let pointer={x:0,y:0,down:false};
+canvas.addEventListener("pointerdown",e=>{if(!running)return;pointer.down=true;pointer.x=e.offsetX;pointer.y=e.offsetY;sliceAt(pointer.x,pointer.y)});
+canvas.addEventListener("pointermove",e=>{if(!running||!pointer.down)return;let x=e.offsetX,y=e.offsetY;sliceAt(x,y);slashes.push({x1:pointer.x,y1:pointer.y,x2:x,y2:y,life:.13});pointer.x=x;pointer.y=y});
+addEventListener("pointerup",()=>pointer.down=false);
+
+function drawEmoji(o){
+ ctx.save();ctx.translate(o.x,o.y);ctx.rotate(o.a);
+ ctx.font=`${o.r*1.65}px "Apple Color Emoji","Segoe UI Emoji",sans-serif`;ctx.textAlign="center";ctx.textBaseline="middle";
+ ctx.shadowColor="#000";ctx.shadowBlur=8;ctx.fillText(o.e,0,0);ctx.restore();
+}
+function loop(now){
+ if(!running)return;
+ const dt=Math.min(.035,(now-last)/1000);last=now;
+ timeLeft-=dt;
+ if(timeLeft<=0){timeLeft=0;endGame();return}
+ spawnTimer-=dt;
+ const interval=Math.max(.22,.58-timeLeft*.003);
+ if(spawnTimer<=0){spawn();if(combo>=20&&Math.random()<.45)spawn();spawnTimer=interval}
+ if(!boss&&timeLeft<35)bossStart();
+ ctx.save();
+ if(shake>0){ctx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);shake-=dt*35}
+ ctx.clearRect(-10,-10,W+20,H+20);
+ const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,"#123b43");g.addColorStop(1,"#061117");ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+ ctx.globalAlpha=.16;ctx.fillStyle="#fff";for(let i=0;i<18;i++){let x=(i*97+now*.02)%W,y=(i*151)%H;ctx.beginPath();ctx.arc(x,y,2,0,Math.PI*2);ctx.fill()}ctx.globalAlpha=1;
+ for(let i=particles.length-1;i>=0;i--){let p=particles[i];p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=500*dt;if(p.life<=0){particles.splice(i,1);continue}ctx.globalAlpha=Math.max(0,p.life);ctx.fillStyle=p.col;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill()}ctx.globalAlpha=1;
+ for(let i=objects.length-1;i>=0;i--){let o=objects[i];o.vy+=900*dt;o.x+=o.vx*dt;o.y+=o.vy*dt;o.a+=o.rot*dt;
+   if(o.cut){objects.splice(i,1);continue}
+   drawEmoji(o);
+   if(o.y>H+100){objects.splice(i,1);if(o.type==="fruit"||o.type==="special")combo=0}
+ }
+ for(let i=slashes.length-1;i>=0;i--){let s=slashes[i];s.life-=dt;if(s.life<=0){slashes.splice(i,1);continue}ctx.globalAlpha=s.life/.13;ctx.strokeStyle="#fff";ctx.lineWidth=7;ctx.lineCap="round";ctx.shadowColor="#8ff";ctx.shadowBlur=18;ctx.beginPath();ctx.moveTo(s.x1,s.y1);ctx.lineTo(s.x2,s.y2);ctx.stroke()}ctx.globalAlpha=1;ctx.restore();
+ updateHud();requestAnimationFrame(loop);
+}
+updateHud();
+</script>
+</body>
+</html>
